@@ -1,0 +1,35 @@
+$cert = New-SelfSignedCertificate -DnsName spvmiha.cloudapp.net  -CertStoreLocation "c:\"
+
+$password = ConvertTo-SecureString -String "Welcome@123" -Force -AsPlainText
+Export-PfxCertificate -Cert $cert -FilePath ".\my-cert-file.pfx" -Password $password
+
+
+$cert = New-SelfSignedCertificate -DnsName yourdomain.cloudapp.net -CertStoreLocation "cert:\LocalMachine\My"
+
+$password = ConvertTo-SecureString -String "your-password" -Force -AsPlainText
+Export-PfxCertificate -Cert $cert -FilePath ".\my-cert-file.pfx" -Password $password
+
+Export:
+Export-Certificate -Type CERT -Cert $cert -FilePath .\my-cert-file.cer
+
+
+SP 2013 create
+
+https://absolute-sharepoint.com/2014/10/create-sharepoint-2013-farm-in-azure-step-step.html
+
+CERT:
+https://technet.microsoft.com/library/hh848633
+
+SSL: WEBAPP
+https://blogs.msdn.microsoft.com/sowmyancs/2010/02/12/how-to-enable-ssl-on-a-sharepoint-2010-web-application/
+
+General
+http://sharepointjack.com/ssl-certificates-and-sharepoint/
+
+SSL for azure site
+https://www.digicert.com/csr-creation-ssl-installation-windows-azure-website.htm
+
+Secure your app's custom domain with HTTPS
+https://azure.microsoft.com/en-in/documentation/articles/web-sites-configure-ssl-certificate/
+
+

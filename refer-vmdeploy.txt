@@ -1,0 +1,57 @@
+$credvm = Get-Credential
+$NumberOfVM = <the number of VM you want to create>;
+$ResourceGroupName = "<your resource group name>"
+$Location = "East Asia"
+
+## Storage
+$StorageName = "<your storage account name>"
+$StorageType = "Standard_GRS"
+
+
+
+
+## Network
+$InterfaceName = "<your interface name>"
+$Subnet1Name = "Subnet1"
+$VNetName = "<your vnet name>"
+$VNetAddressPrefix = "10.0.0.0/16"
+$VNetSubnetAddressPrefix = "10.0.0.0/24"
+
+## Compute
+$vmSize = "Standard_A2"
+
+
+
+$i = 1;
+
+Do 
+{ 
+    $i; 
+    $vmName="Namenode"+$i
+    $vmconfig=New-AzureRmVMConfig -VMName $vmName -VMSize $vmSize
+
+    $vm=Set-AzureRmVMOperatingSystem -VM $vmconfig -Windows -ComputerName $vmName -Credential $credvm -ProvisionVMAgent -EnableAutoUpdate
+
+    $OSDiskName = $vmName + "osDisk"
+    # Storage
+    $StorageAccount = New-AzureRmStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageName$i -Type $StorageType -Location $Location
+    ## Setup local VM object
+ $Publisher = Get-AzureRmVMImagePublisher -Location $resourceGroupLocation | where PublisherName -EQ MicrosoftWindowsServer
+        
+        $Offer = Get-AzureRmVMImageOffer -Location $resourceGroupLocation -PublisherName $Publisher.PublisherName
+        
+        $MySKU = Get-AzureRmVMImageSku  -Location $resourceGroupLocation -PublisherName $Publisher.PublisherName -Offer $Offer.Offer | Where Skus -EQ $WindowsImage | Foreach Skus
+
+
+    $vm = Set-AzureRmVMSourceImage -VM $vm -PublisherName $Publisher -Offer $Offer  -Skus $MySKU -Version "latest"
+    $PIp = New-AzureRmPublicIpAddress -Name $InterfaceName$i -ResourceGroupName $ResourceGroupName -Location $Location -AllocationMethod Dynamic
+    $Interface = New-AzureRmNetworkInterface -Name $InterfaceName$i -ResourceGroupName $ResourceGroupName -Location $Location -SubnetId $VNet.Subnets[0].Id -PublicIpAddressId $PIp.Id
+    $VirtualMachine = Add-AzureRmVMNetworkInterface -VM $vm -Id $Interface.Id
+    $OSDiskUri = $StorageAccount.PrimaryEndpoints.Blob.ToString() + "vhds/" + $OSDiskName + ".vhd"
+    $VirtualMachine = Set-AzureRmVMOSDisk -VM $VirtualMachine -Name $OSDiskName -VhdUri $OSDiskUri -CreateOption FromImage
+
+    ## Create the VM in Azure
+    New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VirtualMachine
+    $i +=1
+} 
+Until ($i -gt $NumberOfVM) 
